@@ -4,20 +4,22 @@ import path from "path";
 import axios from "axios";
 
 const app = express();
-const PORT: Number = 8002;
+const READER_PATH = process.env.READER_PATH || "./reader/dist/";
+const BOOKS_PATH = process.env.BOOKS_PATH || "./books";
+const PORT: number = Number(process.env.PORT ?? "8002");
 
-app.use("/books", express.static("./books/"));
-app.use("/reader", express.static("./reader/dist/"));
+app.use("/books", express.static(BOOKS_PATH));
+app.use("/reader", express.static(READER_PATH));
 app.get("/reader/book/:id", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "/reader/dist/index.html"));
+    res.sendFile(path.join(READER_PATH, "index.html"));
 });
 app.get("/api/books", (req, res) => {
     const books = fs
-        .readdirSync("./books", {
+        .readdirSync(BOOKS_PATH, {
             encoding: "utf8"
         })
         .map(b => ({
-            stat: fs.statSync(path.join("books", b)),
+            stat: fs.statSync(path.join(BOOKS_PATH, b)),
             id: b,
             name: b
         }))
@@ -32,7 +34,7 @@ app.get("/api/books", (req, res) => {
 });
 
 app.get("/api/book-info/:id", (req, res) => {
-    const filePath = path.join("books", req.params.id, "book-info.json");
+    const filePath = path.join(BOOKS_PATH, req.params.id, "book-info.json");
     if (fs.existsSync(filePath)) {
         res.json(JSON.parse(fs.readFileSync(filePath).toString()));
         return;
